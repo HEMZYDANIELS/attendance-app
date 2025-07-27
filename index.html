@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Attendance App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <img src="fuoye-logo.png" alt="FUOYE Logo" style="width: 80px; display: block; margin: 0 auto 16px auto;">
+  <div id="login-section">
+    <form id="login-form">
+      <h2>Welcome Back!</h2>
+      <input type="text" id="matric-number" placeholder="Matric Number" required style="text-transform:uppercase;">
+      <input type="text" id="username" placeholder="Username" required style="text-transform:uppercase;">
+      <div style="position: relative;">
+        <input type="password" id="password" placeholder="Password" required
+          style="padding: 10px 40px 10px 10px; width: 100%; border-radius: 5px; border: 1px solid #1976d2; margin-bottom: 16px;">
+        <span id="togglePassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #1976d2; font-size: 18px;">
+        
+        </span>
+      </div>
+      <label style="display:flex;align-items:center;margin-bottom:10px;">
+        <input type="checkbox" id="remember-me" style="margin-right:8px;">
+        Remember Me
+      </label>
+      <button type="submit">Login</button>
+      <div id="login-error"></div>
+      <p>Don't have an account? <a href="register.html">Register</a></p>
+    </form>
+  </div>
+  <p style="text-align:center; margin-top:10px;">
+    <a href="admin.html" style="color:#1976d2; font-weight:bold;">Admin Login</a>
+  </p>
+  <p style="text-align:center; margin-top:10px;">
+    <a href="history.html" style="color:#388e3c; font-weight:bold;">View Attendance History</a>
+  </p>
+  <script src="script.js"></script>
+  <script>
+    document.getElementById('togglePassword').onclick = function() {
+      const pwd = document.getElementById('password');
+      if (pwd.type === "password") {
+        pwd.type = "text";
+        this.textContent = "🙈";
+      } else {
+        pwd.type = "password";
+        this.textContent = "👁️";
+      }
+    };
+
+    if (localStorage.getItem('loggedInUser') && localStorage.getItem('loggedInMatric')) {
+      window.location.href = "dashboard.html";
+    }
+
+    function register() {
+      const name = document.getElementById("reg-name").value.toUpperCase();
+      const matric = document.getElementById("reg-matric").value.toUpperCase();
+      const username = document.getElementById("reg-username").value.toUpperCase();
+      const password = document.getElementById("reg-password").value;
+
+      if (!name || !matric || !username || !password) {
+        document.getElementById("register-error").textContent = "Please fill all fields.";
+        return;
+      }
+
+      const matricPattern = /^(MAC|CSC|LIS|EDU)\/\d{4}\/\d{4,6}$/i;
+      if (!matricPattern.test(matric)) {
+        document.getElementById("register-error").textContent = "Matric number must be in MAC/2019/12345 or similar format.";
+        return;
+      }
+
+      // Get users array or create new
+      let users = JSON.parse(localStorage.getItem("users") || "[]");
+      // Check if user already exists
+      if (users.find(u => u.username === username && u.matric === matric)) {
+        document.getElementById("register-error").textContent = "User already exists.";
+        return;
+      }
+      users.push({ name, matric, username, password });
+      localStorage.setItem("users", JSON.stringify(users));
+
+      alert("Registration successful! Please login.");
+      window.location.href = "index.html";
+    }
+
+    function login() {
+      const matricNumber = document.getElementById("matric-number").value.toUpperCase();
+      const username = document.getElementById("username").value.toUpperCase();
+      const password = document.getElementById("password").value;
+      const rememberMe = document.getElementById("remember-me").checked;
+
+      if (!matricNumber || !username || !password) {
+        document.getElementById("login-error").textContent = "Please fill all fields.";
+        return;
+      }
+
+      let users = JSON.parse(localStorage.getItem("users") || "[]");
+      const user = users.find(u => u.matric === matricNumber && u.username === username && u.password === password);
+
+      if (user) {
+        if (rememberMe) {
+          localStorage.setItem('loggedInUser', username);
+          localStorage.setItem('loggedInMatric', matricNumber);
+        } else {
+          sessionStorage.setItem('loggedInUser', username);
+          sessionStorage.setItem('loggedInMatric', matricNumber);
+        }
+        window.location.href = "dashboard.html";
+      } else {
+        document.getElementById("login-error").textContent = "Invalid login! Please register first.";
+      }
+    }
+
+    document.getElementById('login-form').onsubmit = function(e) {
+      e.preventDefault();
+      login();
+    };
+  </script>
+</body>
+</html>

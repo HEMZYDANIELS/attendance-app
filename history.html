@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance Calendar</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .calendar { display: grid; grid-template-columns: repeat(7, 40px); gap: 6px; justify-content: center; }
+    .calendar-day { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: bold; }
+    .present { background: #388e3c; color: #fff; }
+    .absent { background: #d32f2f; color: #fff; }
+    .empty { background: #eee; color: #bbb; }
+    .calendar-label { text-align: center; font-weight: bold; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <img src="fuoye-logo.png" alt="FUOYE Logo" style="width: 80px; display: block; margin: 0 auto 16px auto;">
+  <div style="max-width: 500px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 32px;">
+    <h2 style="text-align:center;">Attendance Calendar</h2>
+    <div id="calendar-label" class="calendar-label"></div>
+    <div class="calendar" id="attendance-calendar"></div>
+    <div style="text-align:center; margin-top:20px;">
+      <a href="dashboard.html" style="color:#1976d2; font-weight:bold;">Back to Dashboard</a>
+    </div>
+    <div style="text-align:center; margin-bottom:10px;">
+      <span style="display:inline-block;width:16px;height:16px;background:#388e3c;border-radius:3px;margin-right:5px;"></span> Present
+      <span style="display:inline-block;width:16px;height:16px;background:#d32f2f;border-radius:3px;margin-left:15px;margin-right:5px;"></span> Absent
+    </div>
+  </div>
+  <script>
+  // Only show if logged in
+  let username = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+  let matric = localStorage.getItem('loggedInMatric') || sessionStorage.getItem('loggedInMatric');
+  if (!username || !matric) {
+    alert("Please log in to view your attendance calendar.");
+    window.location.href = "index.html";
+  }
+  // Always use uppercase for key
+  username = username.toUpperCase();
+  matric = matric.toUpperCase();
+  const attendanceKey = `attendance_${matric}_${username}`;
+  const data = JSON.parse(localStorage.getItem(attendanceKey) || '[]');
+  const calendar = document.getElementById('attendance-calendar');
+  const calendarLabel = document.getElementById('calendar-label');
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDay = firstDay.getDay();
+  const endDay = lastDay.getDay();
+  let html = '';
+  for (let i = 0; i < startDay; i++) {
+    html += '<div class="calendar-day empty"></div>';
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    const attendance = data.find(entry => entry.date === dateString);
+    let statusClass = 'absent';
+    if (attendance && attendance.status && attendance.status.toLowerCase() === 'present') {
+      statusClass = 'present';
+    }
+    html += `<div class="calendar-day ${statusClass}">${day}</div>`;
+  }
+  for (let i = endDay + 1; i < 7; i++) {
+    html += '<div class="calendar-day empty"></div>';
+  }
+  calendar.innerHTML = html;
+  calendarLabel.textContent = `${date.toLocaleString('default', { month: 'long' })} ${year}`;
+</script>
+</body>
+</html>

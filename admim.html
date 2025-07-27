@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Attendance App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <img src="fuoye-logo.png" alt="FUOYE Logo" style="width: 80px; display: block; margin: 0 auto 16px auto;">
+  <div style="max-width: 700px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 32px;">
+    <h1 style="color: #1976d2; text-align: center;">Admin Dashboard</h1>
+    <div id="attendance-table-section">
+      <h3 style="text-align:center;">All Students' Attendance</h3>
+      <table id="attendance-table" style="width:100%; border-collapse:collapse; margin:0 auto;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #1976d2; padding:8px;">Username</th>
+            <th style="border:1px solid #1976d2; padding:8px;">Matric Number</th>
+            <th style="border:1px solid #1976d2; padding:8px;">Total Days</th>
+            <th style="border:1px solid #1976d2; padding:8px;">Present</th>
+            <th style="border:1px solid #1976d2; padding:8px;">Absent</th>
+            <th style="border:1px solid #1976d2; padding:8px;">Attendance %</th>
+          </tr>
+        </thead>
+        <tbody id="attendance-table-body"></tbody>
+      </table>
+    </div>
+    <div style="text-align:center; margin-top: 32px;">
+      <button onclick="window.location.href='index.html'" style="padding:10px 24px; background:#d32f2f; color:#fff; border:none; border-radius:6px; cursor:pointer;">
+        Logout
+      </button>
+    </div>
+  </div>
+  <script>
+    // Simple admin password check (replace 'admin123' with your password)
+    if (!sessionStorage.getItem('isAdmin')) {
+      const pwd = prompt("Enter admin password:");
+      if (pwd !== "admin123") {
+        alert("Access denied!");
+        window.location.href = "index.html";
+      } else {
+        sessionStorage.setItem('isAdmin', 'yes');
+      }
+    }
+
+    // Example: For demo, only shows the currently registered user
+    function loadAdminAttendance() {
+      const users = [{
+        username: localStorage.getItem('registeredUsername'),
+        matric: localStorage.getItem('registeredMatric'),
+        name: localStorage.getItem('registeredName')
+      }];
+      const tbody = document.getElementById('attendance-table-body');
+      tbody.innerHTML = "";
+      users.forEach(user => {
+        const attendanceKey = `attendance_${user.matric}_${user.username}`;
+        const data = JSON.parse(localStorage.getItem(attendanceKey) || "[]");
+        let present = 0, absent = 0, total = 0;
+        data.forEach(entry => {
+          if (typeof entry === "object" && entry.status) {
+            if (entry.status === "Present") present++;
+            if (entry.status === "Absent") absent++;
+            total++;
+          } else {
+            present++;
+            total++;
+          }
+        });
+        let percent = total > 0 ? Math.round((present / total) * 100) : 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="border:1px solid #1976d2; padding:8px;">${user.username || "-"}</td>
+          <td style="border:1px solid #1976d2; padding:8px;">${user.matric || "-"}</td>
+          <td style="border:1px solid #1976d2; padding:8px;">${total}</td>
+          <td style="border:1px solid #1976d2; padding:8px;">${present}</td>
+          <td style="border:1px solid #1976d2; padding:8px;">${absent}</td>
+          <td style="border:1px solid #1976d2; padding:8px;">${percent}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    loadAdminAttendance();
+  </script>
+</body>
+</html>
